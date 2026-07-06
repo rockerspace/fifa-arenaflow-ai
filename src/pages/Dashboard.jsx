@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Shield, AlertTriangle, Users, Leaf, Battery, Map, Send, PlusCircle, Trash, CheckCircle } from 'lucide-react';
+import { parseMarkdown } from '../utils/markdown.jsx';
 
 export default function Dashboard({ tickets, setTickets, currentScenario, handleScenarioChange }) {
   const [ticketType, setTicketType] = useState('Crowd Issue');
@@ -9,7 +10,6 @@ export default function Dashboard({ tickets, setTickets, currentScenario, handle
   const [foodRedirectedCount, setFoodRedirectedCount] = useState(380);
   const [foodLogging, setFoodLogging] = useState([]);
 
-  // Mock Camera Streams data
   const cameras = [
     { id: 'cam-01', name: 'Gate A (Main Entrance)', status: currentScenario === 'transit_jam' ? 'critical' : 'normal', crowd: currentScenario === 'transit_jam' ? 95 : 45, wait: currentScenario === 'transit_jam' ? '28 mins' : '4 mins' },
     { id: 'cam-02', name: 'Gate B (East Entrance)', status: 'normal', crowd: 35, wait: '3 mins' },
@@ -17,7 +17,6 @@ export default function Dashboard({ tickets, setTickets, currentScenario, handle
     { id: 'cam-04', name: 'South Transit Link (Bus/Rail)', status: currentScenario === 'transit_jam' ? 'critical' : 'normal', crowd: currentScenario === 'transit_jam' ? 92 : 30, wait: currentScenario === 'transit_jam' ? '45 mins' : '5 mins' },
   ];
 
-  // AI Advisor text based on current scenario or state
   const getAIAdvisory = () => {
     if (currentScenario === 'halftime') {
       return "⚠️ **GenAI Crowd Forecast**: Halftime rush detected. Concession Zones 1 & 2 are approaching 90% load. Recommendation: Dispatch volunteer squads 4 and 7 to guide overflow to Concessions Zone 3 (currently 30% load). Display promotional eco-discounts on Zone 3 menu boards to balance demand.";
@@ -62,7 +61,7 @@ export default function Dashboard({ tickets, setTickets, currentScenario, handle
   };
 
   const handleFoodRedirection = () => {
-    const amount = 120; // 120 meals
+    const amount = 120;
     setFoodRedirectedCount(prev => prev + amount);
     setSustainabilityIndex(prev => Math.min(prev + 3, 99));
     
@@ -74,17 +73,18 @@ export default function Dashboard({ tickets, setTickets, currentScenario, handle
   };
 
   return (
-    <div>
+    <section aria-labelledby="dashboard-heading">
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
         <div>
-          <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: '2rem' }}>Operations Command Center</h2>
+          <h2 id="dashboard-heading" style={{ fontFamily: 'var(--font-heading)', fontSize: '2rem' }}>Operations Command Center</h2>
           <p style={{ color: 'var(--text-secondary)' }}>Real-time telemetry, AI decision support, and incident dispatch</p>
         </div>
         
         {/* Quick Scenario Selector */}
         <div className="glass-panel" style={{ padding: '0.5rem 1rem', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-          <span style={{ fontSize: '0.8rem', fontWeight: 600 }}>Active Sandbox Simulator:</span>
+          <label htmlFor="scenario-selector" style={{ fontSize: '0.8rem', fontWeight: 600 }}>Active Sandbox Simulator:</label>
           <select 
+            id="scenario-selector"
             className="form-select" 
             value={currentScenario} 
             onChange={(e) => handleScenarioChange(e.target.value)}
@@ -99,9 +99,9 @@ export default function Dashboard({ tickets, setTickets, currentScenario, handle
       </div>
 
       {/* Top Stats Overview */}
-      <div className="dashboard-panel-grid">
+      <div className="dashboard-panel-grid" role="region" aria-label="Key Performance Indicators">
         <div className="glass-panel stat-card">
-          <div className="stat-icon theme-blue">
+          <div className="stat-icon theme-blue" aria-hidden="true">
             <Users size={20} />
           </div>
           <div className="stat-info">
@@ -111,7 +111,7 @@ export default function Dashboard({ tickets, setTickets, currentScenario, handle
         </div>
 
         <div className="glass-panel stat-card">
-          <div className="stat-icon theme-green">
+          <div className="stat-icon theme-green" aria-hidden="true">
             <CheckCircle size={20} />
           </div>
           <div className="stat-info">
@@ -123,7 +123,7 @@ export default function Dashboard({ tickets, setTickets, currentScenario, handle
         </div>
 
         <div className="glass-panel stat-card">
-          <div className="stat-icon theme-magenta">
+          <div className="stat-icon theme-magenta" aria-hidden="true">
             <AlertTriangle size={20} />
           </div>
           <div className="stat-info">
@@ -133,7 +133,7 @@ export default function Dashboard({ tickets, setTickets, currentScenario, handle
         </div>
 
         <div className="glass-panel stat-card">
-          <div className="stat-icon theme-gold">
+          <div className="stat-icon theme-gold" aria-hidden="true">
             <Leaf size={20} />
           </div>
           <div className="stat-info">
@@ -149,23 +149,18 @@ export default function Dashboard({ tickets, setTickets, currentScenario, handle
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
           
           {/* AI Advisor Panel */}
-          <div className="glass-panel" style={{ padding: '1.5rem', borderLeft: '4px solid var(--gold)', background: 'rgba(255, 215, 0, 0.03)' }}>
+          <div className="glass-panel" style={{ padding: '1.5rem', borderLeft: '4px solid var(--gold)', background: 'rgba(255, 215, 0, 0.03)' }} role="region" aria-label="GenAI Operations Advisory">
             <h3 style={{ fontSize: '1.15rem', display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.75rem' }}>
               <Shield size={20} style={{ color: 'var(--gold)' }} />
               GenAI Operations Advisory
             </h3>
-            <div 
-              style={{ fontSize: '0.9rem', lineHeight: '1.5', color: '#fff' }}
-              dangerouslySetInnerHTML={{ 
-                __html: getAIAdvisory()
-                  .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-                  .replace(/\*(.*?)\*/g, '<em>$1</em>')
-              }} 
-            />
+            <div style={{ fontSize: '0.9rem', lineHeight: '1.5', color: '#fff' }}>
+              {parseMarkdown(getAIAdvisory())}
+            </div>
           </div>
 
           {/* Camera Telemetry Stream Simulation */}
-          <div className="glass-panel" style={{ padding: '1.5rem' }}>
+          <div className="glass-panel" style={{ padding: '1.5rem' }} role="region" aria-label="Camera Telemetry Sensors">
             <h3 style={{ fontSize: '1.1rem', marginBottom: '0.5rem' }}>Video Analytics & Queue Sensors</h3>
             <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '1rem' }}>
               Real-time computer vision queue analysis and sector density mapping.
@@ -174,7 +169,6 @@ export default function Dashboard({ tickets, setTickets, currentScenario, handle
             <div className="camera-grid">
               {cameras.map(cam => (
                 <div key={cam.id} className="camera-card">
-                  {/* Simulation Canvas Overlay */}
                   <div style={{
                     width: '100%',
                     height: '100%',
@@ -189,7 +183,6 @@ export default function Dashboard({ tickets, setTickets, currentScenario, handle
                   }}>
                     <span>[ CAMERA:{cam.id.toUpperCase()} ]</span>
                     <span style={{ fontSize: '0.65rem' }}>DENSITY: {cam.crowd}%</span>
-                    {/* Visual crowd bar */}
                     <div style={{ width: '80px', height: '4px', background: 'rgba(255,255,255,0.05)', borderRadius: '2px', marginTop: '0.5rem' }}>
                       <div style={{ 
                         width: `${cam.crowd}%`, 
@@ -215,7 +208,7 @@ export default function Dashboard({ tickets, setTickets, currentScenario, handle
           </div>
 
           {/* Eco / Sustainability Redirection */}
-          <div className="glass-panel" style={{ padding: '1.5rem' }}>
+          <div className="glass-panel" style={{ padding: '1.5rem' }} role="region" aria-label="Sustainability Sync">
             <h3 style={{ fontSize: '1.1rem', marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
               <Leaf size={18} style={{ color: 'var(--primary-green)' }} />
               Sustainability Sync: Food Surplus Program
@@ -270,7 +263,7 @@ export default function Dashboard({ tickets, setTickets, currentScenario, handle
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
           
           {/* File New Ticket */}
-          <div className="glass-panel" style={{ padding: '1.5rem' }}>
+          <div className="glass-panel" style={{ padding: '1.5rem' }} role="region" aria-label="Incident Intake Form">
             <h3 style={{ fontSize: '1.1rem', marginBottom: '0.25rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
               <PlusCircle size={18} style={{ color: 'var(--electric-blue)' }} />
               Log Incident / Request Help
@@ -278,8 +271,9 @@ export default function Dashboard({ tickets, setTickets, currentScenario, handle
             
             <form className="incident-form" onSubmit={handleCreateTicket}>
               <div className="form-group">
-                <label className="form-label">Category</label>
+                <label htmlFor="ticket-category-select" className="form-label">Category</label>
                 <select 
+                  id="ticket-category-select"
                   className="form-select" 
                   value={ticketType}
                   onChange={(e) => setTicketType(e.target.value)}
@@ -294,8 +288,9 @@ export default function Dashboard({ tickets, setTickets, currentScenario, handle
               </div>
 
               <div className="form-group">
-                <label className="form-label">Location / Gate / Sector</label>
+                <label htmlFor="ticket-location-input" className="form-label">Location / Gate / Sector</label>
                 <input 
+                  id="ticket-location-input"
                   type="text" 
                   className="form-input" 
                   placeholder="e.g. Sector 104, Row G or Gate D"
@@ -305,8 +300,9 @@ export default function Dashboard({ tickets, setTickets, currentScenario, handle
               </div>
 
               <div className="form-group">
-                <label className="form-label">Brief Description</label>
+                <label htmlFor="ticket-description-input" className="form-label">Brief Description</label>
                 <textarea 
+                  id="ticket-description-input"
                   className="form-textarea" 
                   rows="2" 
                   placeholder="Describe the issue..."
@@ -322,7 +318,7 @@ export default function Dashboard({ tickets, setTickets, currentScenario, handle
           </div>
 
           {/* Active Tickets List */}
-          <div className="glass-panel" style={{ padding: '1.5rem', flex: 1, display: 'flex', flexDirection: 'column' }}>
+          <div className="glass-panel" style={{ padding: '1.5rem', flex: 1, display: 'flex', flexDirection: 'column' }} role="region" aria-label="Active Incidents List">
             <h3 style={{ fontSize: '1.1rem', marginBottom: '0.75rem' }}>
               Active Incident Tickets ({tickets.length})
             </h3>
@@ -367,7 +363,6 @@ export default function Dashboard({ tickets, setTickets, currentScenario, handle
                       {t.description}
                     </p>
 
-                    {/* AI auto-dispatch instructions */}
                     <div style={{ 
                       fontSize: '0.75rem', 
                       background: 'rgba(0, 0, 0, 0.4)', 
@@ -396,6 +391,6 @@ export default function Dashboard({ tickets, setTickets, currentScenario, handle
 
         </div>
       </div>
-    </div>
+    </section>
   );
 }

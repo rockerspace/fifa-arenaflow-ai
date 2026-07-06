@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Globe2, Send, MapPin, Accessibility, Compass, Volume2, ShieldAlert, Check } from 'lucide-react';
+import { parseMarkdown } from '../utils/markdown.jsx';
 
 export default function FanPortal({ addIncidentTicket, currentScenario }) {
   const [messages, setMessages] = useState([
@@ -22,7 +23,6 @@ export default function FanPortal({ addIncidentTicket, currentScenario }) {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  // Suggestions for the chatbot
   const suggestions = [
     "How do I get to Section 112?",
     "Can I bring a power bank?",
@@ -31,11 +31,9 @@ export default function FanPortal({ addIncidentTicket, currentScenario }) {
     "Sustainability: How do I recycle my cup?"
   ];
 
-  // Mock Gemini GenAI response engine based on keywords
   const generateAIResponse = (query) => {
     const q = query.toLowerCase();
     
-    // Check if a crisis/scenario is currently active to modify the AI behavior
     if (currentScenario === 'evac') {
       return "⚠️ **IMPORTANT SAFETY ALERT**: An evacuation order is currently active for stadium sectors due to weather/safety protocols. Please proceed calmly to your designated Gate Exit. Security and volunteers are stationed along all pathways to assist. Do not return to your seats.";
     }
@@ -71,7 +69,6 @@ export default function FanPortal({ addIncidentTicket, currentScenario }) {
     setMessages((prev) => [...prev, userMsg]);
     setInputText('');
 
-    // Simulate AI thinking and reply
     setTimeout(() => {
       const responseText = generateAIResponse(textToSend);
       setMessages((prev) => [
@@ -92,7 +89,6 @@ export default function FanPortal({ addIncidentTicket, currentScenario }) {
         setTtsActive(null);
       } else {
         window.speechSynthesis.cancel();
-        // Remove markdown symbols for cleaner speech
         const cleanText = text.replace(/[*#_⚠️♿📍🎒🚌♻️]/g, '');
         const utterance = new SpeechSynthesisUtterance(cleanText);
         utterance.onend = () => setTtsActive(null);
@@ -124,17 +120,20 @@ export default function FanPortal({ addIncidentTicket, currentScenario }) {
   };
 
   return (
-    <div>
+    <section aria-labelledby="fan-portal-heading">
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
         <div>
-          <h2 style={{ fontFamily: 'var(--font-heading)', fontSize: '2rem' }}>Fan Companion Hub</h2>
+          <h2 id="fan-portal-heading" style={{ fontFamily: 'var(--font-heading)', fontSize: '2rem' }}>Fan Companion Hub</h2>
           <p style={{ color: 'var(--text-secondary)' }}>Get directions, check rules, and chat with AI in your language</p>
         </div>
 
         <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
           <Globe2 size={18} style={{ color: 'var(--gold)' }} />
+          <label htmlFor="language-selector" className="sr-only" style={{ display: 'none' }}>Select Language</label>
           <select 
+            id="language-selector"
             className="form-select" 
+            aria-label="Select Chat Language"
             value={language} 
             onChange={(e) => {
               setLanguage(e.target.value);
@@ -162,10 +161,10 @@ export default function FanPortal({ addIncidentTicket, currentScenario }) {
 
       <div className="ops-grid">
         {/* Left Side: AI Concierge Chatbot */}
-        <div className="glass-panel chat-window">
+        <div className="glass-panel chat-window" role="log" aria-label="AI Concierge Chat History">
           <div className="chat-header">
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <div className="camera-status"></div>
+              <div className="camera-status" aria-hidden="true"></div>
               <strong style={{ fontFamily: 'var(--font-heading)' }}>GenAI Assistant ({language})</strong>
             </div>
             <span style={{ fontSize: '0.8rem', color: 'var(--primary-green)' }}>Active Sync with Venue Operations</span>
@@ -178,16 +177,14 @@ export default function FanPortal({ addIncidentTicket, currentScenario }) {
                 className={`chat-bubble ${msg.sender}`}
                 style={{ position: 'relative' }}
               >
-                {/* Render simple markdown bold markers */}
-                <div dangerouslySetInnerHTML={{ 
-                  __html: msg.text
-                    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-                    .replace(/\*(.*?)\*/g, '<em>$1</em>')
-                }} />
+                <div>
+                  {parseMarkdown(msg.text)}
+                </div>
                 
                 {msg.sender === 'bot' && (
                   <button 
                     onClick={() => triggerTTS(msg.id, msg.text)}
+                    aria-label={`Read aloud: ${msg.text}`}
                     style={{ 
                       background: 'transparent', 
                       border: 'none', 
@@ -207,12 +204,13 @@ export default function FanPortal({ addIncidentTicket, currentScenario }) {
             <div ref={chatEndRef} />
           </div>
 
-          <div className="chat-suggestions">
+          <div className="chat-suggestions" aria-label="Suggested Queries">
             {suggestions.map((sug, idx) => (
               <button 
                 key={idx} 
                 className="suggestion-pill"
                 onClick={() => handleSendMessage(sug)}
+                aria-label={`Ask: ${sug}`}
               >
                 {sug}
               </button>
@@ -223,12 +221,17 @@ export default function FanPortal({ addIncidentTicket, currentScenario }) {
             <input 
               type="text" 
               className="chat-input"
+              aria-label="Type your message"
               placeholder="Ask about gates, food, bags, transport..." 
               value={inputText}
               onChange={(e) => setInputText(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleSendMessage(inputText)}
             />
-            <button className="chat-submit-btn" onClick={() => handleSendMessage(inputText)}>
+            <button 
+              className="chat-submit-btn" 
+              onClick={() => handleSendMessage(inputText)}
+              aria-label="Send Message"
+            >
               <Send size={18} />
             </button>
           </div>
@@ -238,7 +241,7 @@ export default function FanPortal({ addIncidentTicket, currentScenario }) {
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
           
           {/* Seat & Gate Locator */}
-          <div className="glass-panel" style={{ padding: '1.5rem' }}>
+          <div className="glass-panel" style={{ padding: '1.5rem' }} role="region" aria-label="Seat and Gate Locator">
             <h3 style={{ fontSize: '1.1rem', marginBottom: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
               <Compass size={18} style={{ color: 'var(--gold)' }} />
               Seat & Gate Finder
@@ -249,8 +252,9 @@ export default function FanPortal({ addIncidentTicket, currentScenario }) {
             
             <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1rem' }}>
               <div style={{ flex: 1 }}>
-                <label className="form-label">Section</label>
+                <label htmlFor="seat-section-input" className="form-label">Section</label>
                 <input 
+                  id="seat-section-input"
                   type="text" 
                   className="form-input" 
                   placeholder="e.g. 112"
@@ -260,8 +264,9 @@ export default function FanPortal({ addIncidentTicket, currentScenario }) {
                 />
               </div>
               <div style={{ flex: 1 }}>
-                <label className="form-label">Row</label>
+                <label htmlFor="seat-row-input" className="form-label">Row</label>
                 <input 
+                  id="seat-row-input"
                   type="text" 
                   className="form-input" 
                   placeholder="e.g. K"
@@ -299,7 +304,7 @@ export default function FanPortal({ addIncidentTicket, currentScenario }) {
           </div>
 
           {/* Accessibility Special Assistance */}
-          <div className="glass-panel" style={{ padding: '1.5rem', borderLeft: '4px solid var(--accent-magenta)' }}>
+          <div className="glass-panel" style={{ padding: '1.5rem', borderLeft: '4px solid var(--accent-magenta)' }} role="region" aria-label="Accessibility Helpdesk">
             <h3 style={{ fontSize: '1.1rem', marginBottom: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'white' }}>
               <Accessibility size={18} style={{ color: 'var(--accent-magenta)' }} />
               Accessibility Assistance
@@ -320,6 +325,7 @@ export default function FanPortal({ addIncidentTicket, currentScenario }) {
                 }}
                 disabled={isWheelchairRequested}
                 onClick={handleWheelchairRequest}
+                aria-label={isWheelchairRequested ? "Wheelchair assistance already requested" : "Request a wheelchair escort helper"}
               >
                 {isWheelchairRequested ? (
                   <>
@@ -338,6 +344,7 @@ export default function FanPortal({ addIncidentTicket, currentScenario }) {
                 className="btn-secondary" 
                 style={{ width: '100%', display: 'flex', alignItems: 'center', gap: '0.5rem' }}
                 onClick={() => handleSendMessage("Where is the nearest sensory room?")}
+                aria-label="Locate stadium sensory rooms"
               >
                 <MapPin size={16} />
                 Locate Sensory Room
@@ -365,6 +372,7 @@ export default function FanPortal({ addIncidentTicket, currentScenario }) {
                     ]);
                   }
                 }}
+                aria-label="Request immediate emergency assistance"
               >
                 <ShieldAlert size={16} />
                 Request Emergency Assist
@@ -374,6 +382,6 @@ export default function FanPortal({ addIncidentTicket, currentScenario }) {
 
         </div>
       </div>
-    </div>
+    </section>
   );
 }
