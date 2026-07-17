@@ -74,4 +74,51 @@ describe('FIFA ArenaFlow AI Testing Suite', () => {
     const boldEl = screen.getByText('bold');
     expect(boldEl.tagName).toBe('STRONG');
   });
+
+  test('Ops Dashboard: clicks stadium map stand and populates incident location', () => {
+    render(<App />);
+    
+    const opsBtn = screen.getByRole('button', { name: /^Ops Dashboard$/i });
+    fireEvent.click(opsBtn);
+
+    // Click South Stand group on the map SVG
+    const southStandGroup = screen.getByRole('group', { name: /Select South Stand/i });
+    fireEvent.click(southStandGroup);
+
+    // Verify location input auto-populates
+    const locationInput = screen.getByLabelText(/Location \/ Gate \/ Sector/i);
+    expect(locationInput.value).toBe('Sector 107 (South Stand)');
+  });
+
+  test('Ops Dashboard: interacts with match checklist', () => {
+    render(<App />);
+    
+    const opsBtn = screen.getByRole('button', { name: /^Ops Dashboard$/i });
+    fireEvent.click(opsBtn);
+
+    // Verify matches coordinator checklist items exist and toggle them
+    const teamCheck = screen.getByRole('checkbox', { name: /Argentina vs France Team Bus Arrived/i });
+    expect(teamCheck.checked).toBe(true);
+    fireEvent.click(teamCheck);
+    expect(teamCheck.checked).toBe(false);
+  });
+
+  test('Fan Companion Hub: clicks mini map to route paths', () => {
+    render(<App />);
+
+    const fanPortalBtn = screen.getByRole('button', { name: /^Fan Portal/i });
+    fireEvent.click(fanPortalBtn);
+
+    // Click West Stand sector on the Fan portal mini-map
+    const westStandGroup = screen.getByRole('group', { name: /Sec 110 - West Stand/i });
+    fireEvent.click(westStandGroup);
+
+    // Verify Section input is set to 110 using exact label match
+    const sectionInput = screen.getByLabelText(/^Section$/);
+    expect(sectionInput.value).toBe('110');
+
+    // Verify verified path info renders gate
+    expect(screen.getByText(/Recommended entrance:/i)).toBeInTheDocument();
+    expect(screen.getByText(/Gate D/i)).toBeInTheDocument();
+  });
 });

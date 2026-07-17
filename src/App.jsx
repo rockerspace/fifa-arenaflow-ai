@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import Home from './pages/Home.jsx';
 import Dashboard from './pages/Dashboard.jsx';
 import FanPortal from './pages/FanPortal.jsx';
@@ -30,7 +30,13 @@ export default function App() {
     }
   ]);
 
-  const addIncidentTicket = (newTicket) => {
+  // Tournament/Match operations state
+  const [matches, setMatches] = useState([
+    { id: 'M301', home: 'Argentina', away: 'France', time: '18:00', status: 'Pre-Match', gateLoad: '98%', teamArrived: true, refereeChecked: true },
+    { id: 'M302', home: 'USA', away: 'Mexico', time: '21:00', status: 'Scheduled', gateLoad: '85%', teamArrived: false, refereeChecked: false }
+  ]);
+
+  const addIncidentTicket = useCallback((newTicket) => {
     const ticketObj = {
       id: Date.now(),
       status: 'Active',
@@ -38,9 +44,9 @@ export default function App() {
       ...newTicket
     };
     setTickets((prev) => [...prev, ticketObj]);
-  };
+  }, []);
 
-  const handleScenarioChange = (scenarioName) => {
+  const handleScenarioChange = useCallback((scenarioName) => {
     setCurrentScenario(scenarioName);
     
     // Auto-create tickets based on selected scenario
@@ -59,7 +65,7 @@ export default function App() {
         severity: 'High'
       });
     }
-  };
+  }, [addIncidentTicket]);
 
   return (
     <div className="app-container">
@@ -136,6 +142,8 @@ export default function App() {
             setTickets={setTickets}
             currentScenario={currentScenario}
             handleScenarioChange={handleScenarioChange}
+            matches={matches}
+            setMatches={setMatches}
           />
         )}
       </main>

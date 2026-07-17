@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useMemo, useCallback } from 'react';
 import { Globe2, Send, MapPin, Accessibility, Compass, Volume2, ShieldAlert, Check } from 'lucide-react';
 import { parseMarkdown } from '../utils/markdown.jsx';
 
@@ -23,15 +23,15 @@ export default function FanPortal({ addIncidentTicket, currentScenario }) {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  const suggestions = [
+  const suggestions = useMemo(() => [
     "How do I get to Section 112?",
     "Can I bring a power bank?",
     "Where is the nearest sensory room?",
     "What are the shuttle schedules?",
     "Sustainability: How do I recycle my cup?"
-  ];
+  ], []);
 
-  const generateAIResponse = (query) => {
+  const generateAIResponse = useCallback((query) => {
     const q = query.toLowerCase();
     
     if (currentScenario === 'evac') {
@@ -55,9 +55,9 @@ export default function FanPortal({ addIncidentTicket, currentScenario }) {
     }
 
     return "🤖 **GenAI Response**: Thank you for your inquiry. Our operations show normal flows at all major gates. If you need specific directions, let me know your Ticket Section number, or ask about concessions, accessibility, or transit. (Tip: Try clicking one of the quick suggestions below!)";
-  };
+  }, [currentScenario]);
 
-  const handleSendMessage = (textToSend) => {
+  const handleSendMessage = useCallback((textToSend) => {
     if (!textToSend.trim()) return;
 
     const userMsg = {
@@ -80,9 +80,9 @@ export default function FanPortal({ addIncidentTicket, currentScenario }) {
         }
       ]);
     }, 850);
-  };
+  }, [generateAIResponse]);
 
-  const triggerTTS = (msgId, text) => {
+  const triggerTTS = useCallback((msgId, text) => {
     if ('speechSynthesis' in window) {
       if (ttsActive === msgId) {
         window.speechSynthesis.cancel();
@@ -98,9 +98,9 @@ export default function FanPortal({ addIncidentTicket, currentScenario }) {
     } else {
       alert("Text-to-speech is not supported on this browser.");
     }
-  };
+  }, [ttsActive]);
 
-  const handleWheelchairRequest = () => {
+  const handleWheelchairRequest = useCallback(() => {
     setIsWheelchairRequested(true);
     addIncidentTicket({
       type: 'Accessibility Support',
@@ -117,11 +117,34 @@ export default function FanPortal({ addIncidentTicket, currentScenario }) {
         text: '♿ **Accessibility Request Logged**: We have alerted the volunteer team. A venue helper with a wheelchair is being routed to your location. Please stay near the entrance/concourse maps.'
       }
     ]);
-  };
+  }, [addIncidentTicket, seatSection]);
+
+  const handleMapSectorClick = useCallback((sectionNum) => {
+    setSeatSection(sectionNum);
+  }, []);
+
+  // Compute active gate based on section entered/clicked
+  const seatRoutingInfo = useMemo(() => {
+    if (!seatSection) return null;
+    const sec = parseInt(seatSection, 10);
+    if (isNaN(sec)) {
+      return { gate: 'Gate A', gateCoords: { x: 200, y: 55 }, targetCoords: { x: 200, y: 40 } };
+    }
+    
+    if (sec >= 101 && sec <= 103) {
+      return { gate: 'Gate A', gateCoords: { x: 200, y: 20 }, targetCoords: { x: 200, y: 40 } };
+    } else if (sec >= 104 && sec <= 106) {
+      return { gate: 'Gate B', gateCoords: { x: 380, y: 150 }, targetCoords: { x: 345, y: 150 } };
+    } else if (sec >= 107 && sec <= 109) {
+      return { gate: 'Gate C', gateCoords: { x: 200, y: 280 }, targetCoords: { x: 200, y: 255 } };
+    } else {
+      return { gate: 'Gate D', gateCoords: { x: 20, y: 150 }, targetCoords: { x: 55, y: 150 } };
+    }
+  }, [seatSection]);
 
   return (
     <section aria-labelledby="fan-portal-heading">
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem' }}>
         <div>
           <h2 id="fan-portal-heading" style={{ fontFamily: 'var(--font-heading)', fontSize: '2rem' }}>Fan Companion Hub</h2>
           <p style={{ color: 'var(--text-secondary)' }}>Get directions, check rules, and chat with AI in your language</p>
@@ -146,7 +169,7 @@ export default function FanPortal({ addIncidentTicket, currentScenario }) {
                 }
               ]);
             }}
-            style={{ width: '130px', padding: '0.4rem' }}
+            style={{ width: '130px', padding: '0.4rem', background: '#0e1b35', border: '1px solid var(--panel-border)', color: '#fff', borderRadius: '4px' }}
           >
             <option>English</option>
             <option>Español</option>
@@ -247,8 +270,51 @@ export default function FanPortal({ addIncidentTicket, currentScenario }) {
               Seat & Gate Finder
             </h3>
             <p style={{ fontSize: '0.85rem', color: 'var(--text-secondary)', marginBottom: '1rem' }}>
-              Enter your ticket info to fetch direct routes and facilities.
+              Enter or tap a sector on the map below to calculate your route.
             </p>
+
+            {/* Interactive Fan Map */}
+            <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '1rem' }}>
+              <svg viewBox="0 0 400 300" style={{ width: '100%', height: 'auto', maxHeight: '180px', background: 'rgba(0,0,0,0.15)', borderRadius: '12px', border: '1px solid var(--panel-border)' }}>
+                {/* Central Pitch */}
+                <rect x="130" y="90" width="140" height="120" rx="6" fill="rgba(255, 255, 255, 0.02)" stroke="rgba(255,255,255,0.1)" strokeWidth="2" />
+                <circle cx="200" cy="150" r="25" fill="none" stroke="rgba(255,255,255,0.1)" strokeWidth="2" />
+
+                {/* Stands */}
+                <g onClick={() => handleMapSectorClick('101')} style={{ cursor: 'pointer' }} role="group" aria-label="Sec 101 - North Stand">
+                  <rect x="100" y="20" width="200" height="40" rx="4" fill={seatSection === '101' ? 'var(--gold)' : 'rgba(0, 229, 255, 0.15)'} stroke="var(--electric-blue)" />
+                  <text x="200" y="45" fill="#fff" fontSize="10" textAnchor="middle">Sec 101 - North Stand</text>
+                </g>
+
+                <g onClick={() => handleMapSectorClick('104')} style={{ cursor: 'pointer' }} role="group" aria-label="Sec 104 - East Stand">
+                  <rect x="315" y="80" width="65" height="140" rx="4" fill={seatSection === '104' ? 'var(--gold)' : 'rgba(0, 229, 255, 0.15)'} stroke="var(--electric-blue)" />
+                  <text x="347" y="150" fill="#fff" fontSize="10" textAnchor="middle" transform="rotate(90 347 150)">Sec 104 - East Stand</text>
+                </g>
+
+                <g onClick={() => handleMapSectorClick('107')} style={{ cursor: 'pointer' }} role="group" aria-label="Sec 107 - South Stand">
+                  <rect x="100" y="240" width="200" height="40" rx="4" fill={seatSection === '107' ? 'var(--gold)' : 'rgba(0, 229, 255, 0.15)'} stroke="var(--electric-blue)" />
+                  <text x="200" y="265" fill="#fff" fontSize="10" textAnchor="middle">Sec 107 - South Stand</text>
+                </g>
+
+                <g onClick={() => handleMapSectorClick('110')} style={{ cursor: 'pointer' }} role="group" aria-label="Sec 110 - West Stand">
+                  <rect x="20" y="80" width="65" height="140" rx="4" fill={seatSection === '110' ? 'var(--gold)' : 'rgba(0, 229, 255, 0.15)'} stroke="var(--electric-blue)" />
+                  <text x="52" y="150" fill="#fff" fontSize="10" textAnchor="middle" transform="rotate(-90 52 150)">Sec 110 - West Stand</text>
+                </g>
+
+                {/* Draw Dotted Pathfinder line if section matches */}
+                {seatRoutingInfo && (
+                  <line 
+                    x1={seatRoutingInfo.gateCoords.x} 
+                    y1={seatRoutingInfo.gateCoords.y} 
+                    x2={seatRoutingInfo.targetCoords.x} 
+                    y2={seatRoutingInfo.targetCoords.y} 
+                    stroke="var(--gold)" 
+                    strokeWidth="3" 
+                    strokeDasharray="4,4" 
+                  />
+                )}
+              </svg>
+            </div>
             
             <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1rem' }}>
               <div style={{ flex: 1 }}>
@@ -291,11 +357,11 @@ export default function FanPortal({ addIncidentTicket, currentScenario }) {
               Calculate Route
             </button>
             
-            {seatSection && (
+            {seatSection && seatRoutingInfo && (
               <div className="glass-panel" style={{ marginTop: '1rem', padding: '0.75rem', background: 'rgba(0, 229, 255, 0.05)', borderColor: 'rgba(0, 229, 255, 0.2)' }}>
                 <h4 style={{ fontSize: '0.85rem', color: 'var(--electric-blue)', marginBottom: '0.25rem' }}>📍 Verified Path Info:</h4>
                 <div style={{ fontSize: '0.8rem', display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-                  <div>• Recommended entrance: <strong>Gate B</strong></div>
+                  <div>• Recommended entrance: <strong>{seatRoutingInfo.gate}</strong></div>
                   <div>• Nearest Restroom: <strong>Row 15 Concourse</strong></div>
                   <div>• Hydration point: <strong>Section 118</strong></div>
                 </div>

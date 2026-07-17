@@ -14,12 +14,16 @@ ArenaFlow AI is a high-fidelity, real-time command dashboard and fan companion p
 ## 🏆 Key Features & Innovations
 
 ### 1. Ops Command Center (Stadium Operations)
+* **Interactive Smart Stadium Heatmap**: High-fidelity interactive SVG layout of stands (North, East, South, West) mapping real-time crowd loads, designated gates, local concessions, and restroom availability. Sectors adapt dynamically based on simulator states, and clicking any stand auto-populates the incident dispatch form.
+* **Tournament & Match Coordinator**: Real-time tournament checklist syncing team arrivals, referee checks, match kickoff schedules, and gate load capacities.
+* **Smart Power & Utility Telemetry**: Live telemetry tracking smart LED grid optimization percentages and greywater volume savings today.
 * **Computer Vision Queue Sensor & Telemetry**: Simulated real-time sensor streams mapping security gates, transit links, and concessions. AI detects crowd bottleneck risks and recommends flow adjustments.
 * **GenAI Operations Advisory**: Context-aware operations advice updated dynamically based on stadium state or active incidents (e.g., halftime concessions load balancing, transit shuttle routing).
 * **Sustainability Sync (Food Surplus Program)**: GenAI matches surplus concession inventory with local community shelters, logging carbon offsets and boosting the stadium's sustainability score.
 * **AI Incident & Volunteer Ticket Coordinator**: Logs incident reports, uses LLM classification to assign priority, drafts volunteer-facing instructions, and tracks resolutions.
 
 ### 2. Fan Companion Portal (FanAssist)
+* **Interactive Seat Pathfinder Map**: Interactive mini SVG stand map. Tapping a sector auto-calculates entry gate routing path overlays (visually rendering a dotted direction route) and auto-fills ticket section details.
 * **Multilingual AI Concierge**: Chat bot supporting real-time translation (English, Spanish, French, Portuguese, German, Hindi, Japanese). Powered by simulated speech synthesis (Text-to-Speech) for hands-free listening.
 * **Seat to Gate Pathfinder**: Custom seat locator. Enter your ticket section to receive custom entry-gate recommendations, local concession tips, and nearest facilities.
 * **Accessibility Helpdesk**: Dedicated assistance features. Fans can toggle high-contrast accessibility tools, request physical wheelchair escorts (instantly filing an ops ticket), or locate designated sensory rooms.
