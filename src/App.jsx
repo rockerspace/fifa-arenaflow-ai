@@ -33,8 +33,8 @@ export default function App() {
 
   // Tournament/Match operations state
   const [matches, setMatches] = useState([
-    { id: 'M301', home: 'Argentina', away: 'France', time: '18:00', status: 'Pre-Match', gateLoad: '98%', teamArrived: true, refereeChecked: true },
-    { id: 'M302', home: 'USA', away: 'Mexico', time: '21:00', status: 'Scheduled', gateLoad: '85%', teamArrived: false, refereeChecked: false }
+    { id: 'S401', home: 'Patriots', away: 'Cowboys', time: '13:00', status: 'Pre-Match', gateLoad: '98%', teamArrived: true, refereeChecked: true },
+    { id: 'C402', home: 'Mumbai Indians', away: 'Melbourne Stars', time: '18:30', status: 'Scheduled', gateLoad: '85%', teamArrived: false, refereeChecked: false }
   ]);
 
   const addIncidentTicket = useCallback((newTicket) => {
@@ -98,7 +98,7 @@ export default function App() {
       <header className="header">
         <div className="logo-container" onClick={() => setView('home')} style={{ cursor: 'pointer' }}>
           <span className="logo-text">
-            ArenaFlow AI <span className="logo-badge">FIFA 2026</span>
+            ArenaFlow AI <span className="logo-badge">All-Sport</span>
           </span>
         </div>
 
@@ -160,8 +160,8 @@ export default function App() {
 
       {/* Footer */}
       <footer className="footer">
-        <p>© 2026 FIFA World Cup™ Stadium Operations Sandbox. Powered by Gemini Generative AI.</p>
-        <p style={{ marginTop: '0.25rem', fontSize: '0.75rem' }}>Designed for fans, organizers, and volunteers at Host City Venue.</p>
+        <p>© 2026 Universal Stadium Operations Sandbox. Powered by Gemini Generative AI.</p>
+        <p style={{ marginTop: '0.25rem', fontSize: '0.75rem' }}>Designed for fans, organizers, and volunteers across all major sports arenas.</p>
       </footer>
     </div>
   );

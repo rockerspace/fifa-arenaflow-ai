@@ -11,11 +11,11 @@ beforeAll(() => {
   };
 });
 
-describe('FIFA ArenaFlow AI Testing Suite', () => {
+describe('ArenaFlow AI Testing Suite', () => {
   test('renders hero title and sandbox notice on landing page', () => {
     render(<App />);
     expect(screen.getByText(/Next-Generation Stadium Operations/i)).toBeInTheDocument();
-    expect(screen.getByText(/FIFA WORLD CUP 2026 OFFICIAL SANDBOX/i)).toBeInTheDocument();
+    expect(screen.getByText(/MULTI-SPORT SMART ARENA SANDBOX/i)).toBeInTheDocument();
   });
 
   test('navigates to Fan Portal and processes AI chatbot query', async () => {
@@ -97,7 +97,7 @@ describe('FIFA ArenaFlow AI Testing Suite', () => {
     fireEvent.click(opsBtn);
 
     // Verify matches coordinator checklist items exist and toggle them
-    const teamCheck = screen.getByRole('checkbox', { name: /Argentina vs France Team Bus Arrived/i });
+    const teamCheck = screen.getByRole('checkbox', { name: /Patriots vs Cowboys Team Bus Arrived/i });
     expect(teamCheck.checked).toBe(true);
     fireEvent.click(teamCheck);
     expect(teamCheck.checked).toBe(false);

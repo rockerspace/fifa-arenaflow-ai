@@ -5,7 +5,7 @@ export default function Home({ setView }) {
   return (
     <div className="hero-section">
       <div className="logo-badge" style={{ marginBottom: '1rem', display: 'inline-flex' }}>
-        ⚽ FIFA WORLD CUP 2026 OFFICIAL SANDBOX
+        🏟️ MULTI-SPORT SMART ARENA SANDBOX
       </div>
       
       <h1 className="hero-title">
@@ -13,7 +13,7 @@ export default function Home({ setView }) {
       </h1>
       
       <p className="hero-description">
-        FIFA ArenaFlow AI leverages real-time Generative AI to orchestrate stadium safety, optimize transport hubs, route crowds, coordinate sustainability targets, and provide instant multilingual concierge services for fans, staff, and volunteers.
+        ArenaFlow AI leverages real-time Generative AI to orchestrate stadium safety, optimize transport hubs, route crowds, coordinate sustainability targets, and provide instant multilingual concierge services for fans, staff, and volunteers across all sporting events.
       </p>
 
       <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', marginBottom: '4rem' }}>
@@ -32,7 +32,7 @@ export default function Home({ setView }) {
         Core Intelligent Capabilities
       </h2>
       <p style={{ color: 'var(--text-secondary)', marginBottom: '2rem' }}>
-        Empowering World Cup host venues with real-time operational decision support
+        Empowering major sports arenas and stadiums with real-time operational decision support
       </p>
 
       <div className="hero-features">

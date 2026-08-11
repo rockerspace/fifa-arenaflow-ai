@@ -1,8 +1,8 @@
-# FIFA World Cup 2026 - ArenaFlow AI 🏟️
+# ArenaFlow AI - Universal Smart Stadium Operations 🏟️
 
 > **GenAI-Enabled Stadium Operations & Fan Experience Orchestration Platform**
 
-ArenaFlow AI is a high-fidelity, real-time command dashboard and fan companion portal designed to resolve critical pain points in stadium management, crowd navigation, safety protocols, multilingual support, and event sustainability for the FIFA World Cup 2026.
+ArenaFlow AI is a high-fidelity, real-time command dashboard and fan companion portal designed to resolve critical pain points in stadium management, crowd navigation, safety protocols, multilingual support, and event sustainability across all sports events (football, cricket, rugby, concerts, and more).
 
 ## 🚀 Live Links
 

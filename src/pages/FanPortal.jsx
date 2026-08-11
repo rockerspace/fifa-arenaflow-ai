@@ -7,7 +7,7 @@ export default function FanPortal({ addIncidentTicket, currentScenario }) {
     {
       id: 1,
       sender: 'bot',
-      text: '¡Welcome to the FIFA World Cup 2026 Arena Companion! ⚽ I am your GenAI Assistant. Ask me anything about tickets, seat routes, stadium rules, transport, concessions, or accessibility in any language.'
+      text: '¡Welcome to the Universal Arena Companion! 🏟️ I am your GenAI Assistant. Ask me anything about tickets, seat routes, stadium rules, transport, concessions, or accessibility in any language.'
     }
   ]);
   const [inputText, setInputText] = useState('');
@@ -48,10 +48,10 @@ export default function FanPortal({ addIncidentTicket, currentScenario }) {
       return "♿ **Accessibility & Inclusion Services**: The stadium provides designated Sensory Rooms at Level 1 (near Section 121) for fans with sensory needs. Noise-cancelling headphones can be borrowed at Guest Services. If you need physical assistance or a wheelchair escort, you can toggle the 'Request Accessibility Assistance' panel below.";
     }
     if (q.includes('shuttle') || q.includes('transit') || q.includes('bus') || q.includes('subway') || q.includes('train')) {
-      return "🚌 **Transportation Info**: Shuttle buses to the central Subway Station run every 4 minutes from Lot G. Walk out of Gate D and turn right. Shuttles are fully electric and equipped with low-floor access for wheelchairs. Standard public transit is free today with your FIFA digital match ticket!";
+      return "🚌 **Transportation Info**: Shuttle buses to the central Subway Station run every 4 minutes from Lot G. Walk out of Gate D and turn right. Shuttles are fully electric and equipped with low-floor access for wheelchairs. Standard public transit is free today with your official match ticket!";
     }
     if (q.includes('recycle') || q.includes('sustainability') || q.includes('cup') || q.includes('green') || q.includes('waste')) {
-      return "♻️ **Green Stadium Initiative**: We use a circular cup return system. Please deposit your reusable souvenir cup at any Green Return bin (located next to every concession counter). For every cup returned, our partner donor contributes ₹10 to regional reforestation programs. Let's make this the most sustainable World Cup ever!";
+      return "♻️ **Green Stadium Initiative**: We use a circular cup return system. Please deposit your reusable souvenir cup at any Green Return bin (located next to every concession counter). For every cup returned, our partner donor contributes ₹10 to regional reforestation programs. Let's make this the most sustainable sports venue ever!";
     }
 
     return "🤖 **GenAI Response**: Thank you for your inquiry. Our operations show normal flows at all major gates. If you need specific directions, let me know your Ticket Section number, or ask about concessions, accessibility, or transit. (Tip: Try clicking one of the quick suggestions below!)";
