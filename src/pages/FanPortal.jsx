@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect, useMemo, useCallback } from 'react';
 import { Globe2, Send, MapPin, Accessibility, Compass, Volume2, ShieldAlert, Check } from 'lucide-react';
 import { parseMarkdown } from '../utils/markdown.jsx';
+import { validateInput } from '../utils/guardrails.js';
 
 export default function FanPortal({ addIncidentTicket, currentScenario }) {
   const [messages, setMessages] = useState([
@@ -68,6 +69,22 @@ export default function FanPortal({ addIncidentTicket, currentScenario }) {
 
     setMessages((prev) => [...prev, userMsg]);
     setInputText('');
+
+    // Real-Time AI Input Guardrail Validation
+    const validation = validateInput(textToSend);
+    if (!validation.isValid) {
+      setTimeout(() => {
+        setMessages((prev) => [
+          ...prev,
+          {
+            id: Date.now() + 1,
+            sender: 'bot',
+            text: validation.message
+          }
+        ]);
+      }, 500);
+      return;
+    }
 
     setTimeout(() => {
       const responseText = generateAIResponse(textToSend);
