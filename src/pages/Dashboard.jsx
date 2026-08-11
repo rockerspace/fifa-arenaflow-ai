@@ -1,6 +1,7 @@
-import React, { useState, useMemo, useCallback } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { Shield, AlertTriangle, Users, Leaf, Battery, Map, Send, PlusCircle, Trash, CheckCircle, Activity, Calendar, Award } from 'lucide-react';
 import { parseMarkdown } from '../utils/markdown.jsx';
+import { apiSim } from '../utils/apiSim.js';
 
 export default function Dashboard({ tickets, setTickets, currentScenario, handleScenarioChange, matches = [], setMatches }) {
   const [ticketType, setTicketType] = useState('Crowd Issue');
@@ -9,6 +10,16 @@ export default function Dashboard({ tickets, setTickets, currentScenario, handle
   const [sustainabilityIndex, setSustainabilityIndex] = useState(74);
   const [foodRedirectedCount, setFoodRedirectedCount] = useState(380);
   const [foodLogging, setFoodLogging] = useState([]);
+
+  // Subscribe to real-time sustainability telemetry stream from apiSim Pub/Sub
+  useEffect(() => {
+    const unsubscribe = apiSim.subscribeToTelemetry((metrics) => {
+      setSustainabilityIndex(metrics.sustainabilityIndex);
+      setFoodRedirectedCount(metrics.foodRedirectedCount);
+      setFoodLogging(metrics.foodLogging);
+    });
+    return unsubscribe;
+  }, []);
   
   // Interactive Map State
   const [selectedSector, setSelectedSector] = useState('North');
@@ -61,35 +72,22 @@ export default function Dashboard({ tickets, setTickets, currentScenario, handle
       return;
     }
 
-    const newTicket = {
-      id: Date.now(),
+    apiSim.createTicket({
       type: ticketType,
       location: ticketLoc,
       description: ticketDesc,
-      severity: ticketType === 'Emergency Support' ? 'High' : 'Medium',
-      status: 'Active',
-      aiInstructions: `Volunteer dispatch alert: Proceed to ${ticketLoc}. Resolve: ${ticketDesc}.`
-    };
-
-    setTickets(prev => [...prev, newTicket]);
+      severity: ticketType === 'Emergency Support' ? 'High' : 'Medium'
+    });
     setTicketLoc('');
     setTicketDesc('');
-  }, [ticketType, ticketLoc, ticketDesc, setTickets]);
+  }, [ticketType, ticketLoc, ticketDesc]);
 
   const handleResolveTicket = useCallback((id) => {
-    setTickets(prev => prev.filter(t => t.id !== id));
-  }, [setTickets]);
+    apiSim.resolveTicket(id);
+  }, []);
 
   const handleFoodRedirection = useCallback(() => {
-    const amount = 120;
-    setFoodRedirectedCount(prev => prev + amount);
-    setSustainabilityIndex(prev => Math.min(prev + 3, 99));
-    
-    const timestamp = new Date().toLocaleTimeString();
-    setFoodLogging(prev => [
-      `[${timestamp}] 📦 AI Surplus Match: Redirected ${amount} hot dogs & sliders from Zone 1 concession to Newark Community Shelter. Sustainability Index updated.`,
-      ...prev
-    ]);
+    apiSim.routeSurplusFood();
   }, []);
 
   const handleMapSectorClick = useCallback((sectorKey) => {
@@ -98,9 +96,7 @@ export default function Dashboard({ tickets, setTickets, currentScenario, handle
   }, [sectors]);
 
   const toggleMatchCheckbox = useCallback((matchId, field) => {
-    setMatches(prevMatches => 
-      prevMatches.map(m => m.id === matchId ? { ...m, [field]: !m[field] } : m)
-    );
+    apiSim.toggleMatch(matchId, field).then(updated => setMatches(updated));
   }, [setMatches]);
 
   return (

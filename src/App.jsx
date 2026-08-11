@@ -1,50 +1,41 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import Home from './pages/Home.jsx';
 import Dashboard from './pages/Dashboard.jsx';
 import FanPortal from './pages/FanPortal.jsx';
 import FounderHub from './pages/FounderHub.jsx';
-import { Shield, Users, Globe2, Compass, AlertCircle, Activity } from 'lucide-react';
+import { Shield, Users, Globe2, Compass, AlertCircle, Activity, Lock, LogIn, LogOut } from 'lucide-react';
+import { apiSim } from './utils/apiSim.js';
+import { determineRole, hasPermission, AUTH_ROLES } from './utils/auth.js';
 
 export default function App() {
   const [view, setView] = useState('home');
   const [currentScenario, setCurrentScenario] = useState('none');
   
-  // Shared state for incident tickets
-  const [tickets, setTickets] = useState([
-    {
-      id: 101,
-      type: 'Infrastructure Repair',
-      location: 'Gate A - Scanner 3',
-      description: 'NFC ticket reader failing to register digital wallet tickets.',
-      severity: 'Medium',
-      status: 'Active',
-      aiInstructions: 'Notify IT support hub and dispatch technician A1 with an replacement reader.'
-    },
-    {
-      id: 102,
-      type: 'Crowd Issue',
-      location: 'Section 104 Concourse',
-      description: 'Slow queue building near the primary security corridor.',
-      severity: 'Medium',
-      status: 'Active',
-      aiInstructions: 'Instruct stewards in Section 104 to direct incoming fans to Gate B.'
-    }
-  ]);
+  // Real-Time subscription state mirroring Firebase/PubSub updates
+  const [tickets, setTickets] = useState([]);
+  
+  // Authentication & Session States
+  const [currentUser, setCurrentUser] = useState({ username: 'Public Fan', role: AUTH_ROLES.FAN });
+  const [isAuthOpen, setIsAuthOpen] = useState(false);
+  const [authUsername, setAuthUsername] = useState('');
 
-  // Tournament/Match operations state
-  const [matches, setMatches] = useState([
-    { id: 'S401', home: 'Patriots', away: 'Cowboys', time: '13:00', status: 'Pre-Match', gateLoad: '98%', teamArrived: true, refereeChecked: true },
-    { id: 'C402', home: 'Mumbai Indians', away: 'Melbourne Stars', time: '18:30', status: 'Scheduled', gateLoad: '85%', teamArrived: false, refereeChecked: false }
-  ]);
+  // Subscribe to incident tickets stream from apiSim database
+  useEffect(() => {
+    const unsubscribe = apiSim.subscribeToTickets((updatedTickets) => {
+      setTickets(updatedTickets);
+    });
+    return unsubscribe;
+  }, []);
+
+  // Shared state for tournament matches
+  const [matches, setMatches] = useState([]);
+
+  useEffect(() => {
+    apiSim.getMatches().then(m => setMatches(m));
+  }, []);
 
   const addIncidentTicket = useCallback((newTicket) => {
-    const ticketObj = {
-      id: Date.now(),
-      status: 'Active',
-      aiInstructions: `AI Auto-Dispatch: Alert closest volunteer in zone ${newTicket.location}. Assist protocol initiated.`,
-      ...newTicket
-    };
-    setTickets((prev) => [...prev, ticketObj]);
+    apiSim.createTicket(newTicket);
   }, []);
 
   const handleScenarioChange = useCallback((scenarioName) => {
@@ -68,6 +59,36 @@ export default function App() {
     }
   }, [addIncidentTicket]);
 
+  // Auth Handlers
+  const handleLoginSubmit = (e) => {
+    e.preventDefault();
+    if (!authUsername.trim()) return;
+
+    const role = determineRole(authUsername);
+    setCurrentUser({
+      username: authUsername,
+      role: role
+    });
+    setIsAuthOpen(false);
+    setAuthUsername('');
+    // Redirect to home if current view is not allowed
+    if (!hasPermission(role, view)) {
+      setView('home');
+    }
+  };
+
+  const handleLogout = () => {
+    setCurrentUser({ username: 'Public Fan', role: AUTH_ROLES.FAN });
+    setView('home');
+  };
+
+  const handleNavClick = (targetView) => {
+    setView(targetView);
+  };
+
+  // Determine if view is blocked by IAM policies
+  const isViewBlocked = !hasPermission(currentUser.role, view);
+
   return (
     <div className="app-container">
       {/* Global Scenario Emergency Warning Bar */}
@@ -87,7 +108,7 @@ export default function App() {
         }}>
           <AlertCircle size={16} />
           <span>
-            {currentScenario === 'evac' && "⚠️ CRITICAL ALERT: Stadium Evacuation Mode Active. Proceed to nearest exit gates."}
+            {currentScenario === 'evac' && "⚠️ CRITICAL Evacuation Mode Active. Proceed to nearest exit gates."}
             {currentScenario === 'transit_jam' && "⚠️ TRANSIT DELAY: Rail delays at South Link. Shuttle routing modified."}
             {currentScenario === 'halftime' && "⚡ HALFTIME LOAD: High concession demand detected. Flow control enabled."}
           </span>
@@ -102,60 +123,124 @@ export default function App() {
           </span>
         </div>
 
-        <nav className="nav-links">
+        <nav className="nav-links" style={{ alignItems: 'center' }}>
           <button 
             className={`nav-button ${view === 'home' ? 'active' : ''}`}
-            onClick={() => setView('home')}
+            onClick={() => handleNavClick('home')}
           >
             Home
           </button>
           <button 
             className={`nav-button ${view === 'fan' ? 'active' : ''}`}
-            onClick={() => setView('fan')}
+            onClick={() => handleNavClick('fan')}
           >
             <Globe2 size={16} />
             Fan Portal
           </button>
           <button 
             className={`nav-button ${view === 'ops' ? 'active' : ''}`}
-            onClick={() => setView('ops')}
+            onClick={() => handleNavClick('ops')}
           >
             <Shield size={16} />
             Ops Dashboard
           </button>
           <button 
             className={`nav-button ${view === 'founder' ? 'active' : ''}`}
-            onClick={() => setView('founder')}
+            onClick={() => handleNavClick('founder')}
           >
             <Activity size={16} />
             Founder Hub
           </button>
+
+          {/* IAM User Session Panel */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginLeft: '1rem', borderLeft: '1px solid var(--panel-border)', paddingLeft: '1rem' }}>
+            <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
+              👤 {currentUser.username} (<strong style={{ color: 'var(--gold)' }}>{currentUser.role.toUpperCase()}</strong>)
+            </span>
+            {currentUser.role === AUTH_ROLES.FAN ? (
+              <button onClick={() => setIsAuthOpen(true)} aria-label="Sign In" style={{ background: 'transparent', border: 'none', color: 'var(--electric-blue)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.25rem', fontSize: '0.8rem' }}>
+                <LogIn size={14} /> Login
+              </button>
+            ) : (
+              <button onClick={handleLogout} aria-label="Sign Out" style={{ background: 'transparent', border: 'none', color: 'var(--status-danger)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.25rem', fontSize: '0.8rem' }}>
+                <LogOut size={14} /> Logout
+              </button>
+            )}
+          </div>
         </nav>
       </header>
 
-      {/* Page Selector */}
+      {/* Auth Modal Overlay */}
+      {isAuthOpen && (
+        <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', background: 'rgba(0,0,0,0.8)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
+          <div className="glass-panel" style={{ padding: '2rem', width: '350px', background: '#0e1b35' }}>
+            <h3 style={{ marginBottom: '1rem', fontFamily: 'var(--font-heading)' }}>Secure Role Login</h3>
+            <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '1.25rem' }}>
+              Select role by entering names containing:<br/>
+              • <strong>ops</strong> / <strong>volunteer</strong> for Operations<br/>
+              • <strong>admin</strong> / <strong>founder</strong> for SaaS Analytics
+            </p>
+            <form onSubmit={handleLoginSubmit}>
+              <div className="form-group" style={{ marginBottom: '1rem' }}>
+                <label htmlFor="auth-username-input" className="form-label">Username / Role ID</label>
+                <input 
+                  id="auth-username-input"
+                  type="text" 
+                  className="form-input" 
+                  placeholder="e.g. ops_coordinator" 
+                  value={authUsername}
+                  onChange={(e) => setAuthUsername(e.target.value)}
+                  style={{ width: '100%' }}
+                />
+              </div>
+              <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}>
+                <button type="button" onClick={() => setIsAuthOpen(false)} className="btn-secondary" style={{ padding: '0.5rem 1rem' }}>Cancel</button>
+                <button type="submit" className="btn-primary" style={{ padding: '0.5rem 1rem' }}>Login</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Page Content & Role Validation Blocks */}
       <main className="main-content">
-        {view === 'home' && <Home setView={setView} />}
-        
-        {view === 'fan' && (
-          <FanPortal 
-            addIncidentTicket={addIncidentTicket} 
-            currentScenario={currentScenario}
-          />
+        {isViewBlocked ? (
+          <div className="glass-panel" style={{ padding: '3rem', textAlign: 'center', maxWidth: '500px', margin: '4rem auto', borderLeft: '4px solid var(--status-danger)' }}>
+            <Lock size={48} style={{ color: 'var(--status-danger)', marginBottom: '1rem' }} />
+            <h2 style={{ fontSize: '1.5rem', marginBottom: '0.5rem' }}>Access Denied (IAM Guard)</h2>
+            <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginBottom: '2rem' }}>
+              You do not have permissions to access the <strong>{view.toUpperCase()}</strong> panel.<br/>
+              This view is restricted to <strong>{view === 'ops' ? 'OPS & FOUNDER' : 'FOUNDER'}</strong> roles.
+            </p>
+            <button className="btn-primary" onClick={() => setIsAuthOpen(true)}>
+              Login with Restricted Credentials
+            </button>
+          </div>
+        ) : (
+          <>
+            {view === 'home' && <Home setView={handleNavClick} />}
+            
+            {view === 'fan' && (
+              <FanPortal 
+                addIncidentTicket={addIncidentTicket} 
+                currentScenario={currentScenario}
+              />
+            )}
+            
+            {view === 'ops' && (
+              <Dashboard 
+                tickets={tickets} 
+                setTickets={setTickets}
+                currentScenario={currentScenario}
+                handleScenarioChange={handleScenarioChange}
+                matches={matches}
+                setMatches={setMatches}
+              />
+            )}
+            
+            {view === 'founder' && <FounderHub />}
+          </>
         )}
-        
-        {view === 'ops' && (
-          <Dashboard 
-            tickets={tickets} 
-            setTickets={setTickets}
-            currentScenario={currentScenario}
-            handleScenarioChange={handleScenarioChange}
-            matches={matches}
-            setMatches={setMatches}
-          />
-        )}
-        
-        {view === 'founder' && <FounderHub />}
       </main>
 
       {/* Footer */}

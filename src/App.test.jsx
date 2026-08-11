@@ -1,4 +1,4 @@
-import { render, screen, fireEvent } from '@testing-library/react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import React from 'react';
 import App from './App.jsx';
 import { parseMarkdown } from './utils/markdown.jsx';
@@ -37,9 +37,17 @@ describe('ArenaFlow AI Testing Suite', () => {
     expect(userMsgElements.length).toBeGreaterThan(0);
   });
 
-  test('navigates to Ops Dashboard and adds an incident ticket', () => {
+  test('navigates to Ops Dashboard and adds an incident ticket', async () => {
     render(<App />);
     
+    // Login as ops coordinator first to satisfy IAM guard
+    const loginLink = screen.getByRole('button', { name: /Sign In/i });
+    fireEvent.click(loginLink);
+    const usernameInput = screen.getByLabelText(/Username \/ Role ID/i);
+    fireEvent.change(usernameInput, { target: { value: 'ops_steward' } });
+    const loginSubmitBtn = screen.getByRole('button', { name: /^Login$/i });
+    fireEvent.click(loginSubmitBtn);
+
     // Locate and click Ops Dashboard button exactly
     const opsBtn = screen.getByRole('button', { name: /^Ops Dashboard$/i });
     fireEvent.click(opsBtn);
@@ -62,10 +70,10 @@ describe('ArenaFlow AI Testing Suite', () => {
     fireEvent.click(submitBtn);
 
     // Verify the ticket has appeared on the dashboard (could be multiple locations)
-    const matchedLocs = screen.getAllByText(/Section 104, Row J/i);
+    const matchedLocs = await screen.findAllByText(/Section 104, Row J/i);
     expect(matchedLocs.length).toBeGreaterThan(0);
 
-    const matchedDescs = screen.getAllByText(/Spectator feeling dizzy/i);
+    const matchedDescs = await screen.findAllByText(/Spectator feeling dizzy/i);
     expect(matchedDescs.length).toBeGreaterThan(0);
   });
 
@@ -78,6 +86,14 @@ describe('ArenaFlow AI Testing Suite', () => {
   test('Ops Dashboard: clicks stadium map stand and populates incident location', () => {
     render(<App />);
     
+    // Login as ops coordinator first to satisfy IAM guard
+    const loginLink = screen.getByRole('button', { name: /Sign In/i });
+    fireEvent.click(loginLink);
+    const usernameInput = screen.getByLabelText(/Username \/ Role ID/i);
+    fireEvent.change(usernameInput, { target: { value: 'ops_steward' } });
+    const loginSubmitBtn = screen.getByRole('button', { name: /^Login$/i });
+    fireEvent.click(loginSubmitBtn);
+
     const opsBtn = screen.getByRole('button', { name: /^Ops Dashboard$/i });
     fireEvent.click(opsBtn);
 
@@ -90,17 +106,25 @@ describe('ArenaFlow AI Testing Suite', () => {
     expect(locationInput.value).toBe('Sector 107 (South Stand)');
   });
 
-  test('Ops Dashboard: interacts with match checklist', () => {
+  test('Ops Dashboard: interacts with match checklist', async () => {
     render(<App />);
     
+    // Login as ops coordinator first to satisfy IAM guard
+    const loginLink = screen.getByRole('button', { name: /Sign In/i });
+    fireEvent.click(loginLink);
+    const usernameInput = screen.getByLabelText(/Username \/ Role ID/i);
+    fireEvent.change(usernameInput, { target: { value: 'ops_steward' } });
+    const loginSubmitBtn = screen.getByRole('button', { name: /^Login$/i });
+    fireEvent.click(loginSubmitBtn);
+
     const opsBtn = screen.getByRole('button', { name: /^Ops Dashboard$/i });
     fireEvent.click(opsBtn);
 
     // Verify matches coordinator checklist items exist and toggle them
-    const teamCheck = screen.getByRole('checkbox', { name: /Patriots vs Cowboys Team Bus Arrived/i });
+    const teamCheck = await screen.findByRole('checkbox', { name: /Patriots vs Cowboys Team Bus Arrived/i });
     expect(teamCheck.checked).toBe(true);
     fireEvent.click(teamCheck);
-    expect(teamCheck.checked).toBe(false);
+    await waitFor(() => expect(teamCheck.checked).toBe(false));
   });
 
   test('Fan Companion Hub: clicks mini map to route paths', () => {
@@ -124,6 +148,14 @@ describe('ArenaFlow AI Testing Suite', () => {
 
   test('Founder Hub: signs contracts and toggles traffic simulator modes', () => {
     render(<App />);
+
+    // Login as founder first to satisfy IAM guard
+    const loginLink = screen.getByRole('button', { name: /Sign In/i });
+    fireEvent.click(loginLink);
+    const usernameInput = screen.getByLabelText(/Username \/ Role ID/i);
+    fireEvent.change(usernameInput, { target: { value: 'admin_founder' } });
+    const loginSubmitBtn = screen.getByRole('button', { name: /^Login$/i });
+    fireEvent.click(loginSubmitBtn);
 
     const founderHubBtn = screen.getByRole('button', { name: /^Founder Hub$/i });
     fireEvent.click(founderHubBtn);

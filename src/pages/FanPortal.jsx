@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect, useMemo, useCallback } from 'react'
 import { Globe2, Send, MapPin, Accessibility, Compass, Volume2, ShieldAlert, Check } from 'lucide-react';
 import { parseMarkdown } from '../utils/markdown.jsx';
 import { validateInput } from '../utils/guardrails.js';
+import { calculateDijkstraPath } from '../utils/pathfinder.js';
 
 export default function FanPortal({ addIncidentTicket, currentScenario }) {
   const [messages, setMessages] = useState([
@@ -140,24 +141,48 @@ export default function FanPortal({ addIncidentTicket, currentScenario }) {
     setSeatSection(sectionNum);
   }, []);
 
-  // Compute active gate based on section entered/clicked
+  // Compute active gate based on section entered/clicked using Dijkstra pathfinder
   const seatRoutingInfo = useMemo(() => {
     if (!seatSection) return null;
     const sec = parseInt(seatSection, 10);
     if (isNaN(sec)) {
-      return { gate: 'Gate A', gateCoords: { x: 200, y: 55 }, targetCoords: { x: 200, y: 40 } };
+      return { gate: 'Gate A', gateCoords: { x: 200, y: 20 }, targetCoords: { x: 200, y: 40 }, distance: 4 };
     }
     
+    // Map numerical stand section to graph node stands
+    let startNode = '110';
+    let targetCoords = { x: 55, y: 150 };
     if (sec >= 101 && sec <= 103) {
-      return { gate: 'Gate A', gateCoords: { x: 200, y: 20 }, targetCoords: { x: 200, y: 40 } };
+      startNode = '101';
+      targetCoords = { x: 200, y: 40 };
     } else if (sec >= 104 && sec <= 106) {
-      return { gate: 'Gate B', gateCoords: { x: 380, y: 150 }, targetCoords: { x: 345, y: 150 } };
+      startNode = '104';
+      targetCoords = { x: 345, y: 150 };
     } else if (sec >= 107 && sec <= 109) {
-      return { gate: 'Gate C', gateCoords: { x: 200, y: 280 }, targetCoords: { x: 200, y: 255 } };
-    } else {
-      return { gate: 'Gate D', gateCoords: { x: 20, y: 150 }, targetCoords: { x: 55, y: 150 } };
+      startNode = '107';
+      targetCoords = { x: 200, y: 255 };
     }
-  }, [seatSection]);
+
+    // Run dynamic Dijkstra graph calculation
+    const routingResult = calculateDijkstraPath(startNode, currentScenario);
+    
+    // Map calculated optimal gate to coordinates
+    let gateCoords = { x: 20, y: 150 }; // Gate D default
+    if (routingResult.gate === 'Gate A') {
+      gateCoords = { x: 200, y: 20 };
+    } else if (routingResult.gate === 'Gate B') {
+      gateCoords = { x: 380, y: 150 };
+    } else if (routingResult.gate === 'Gate C') {
+      gateCoords = { x: 200, y: 280 };
+    }
+
+    return {
+      gate: routingResult.gate,
+      gateCoords,
+      targetCoords,
+      distance: routingResult.distance
+    };
+  }, [seatSection, currentScenario]);
 
   return (
     <section aria-labelledby="fan-portal-heading">
