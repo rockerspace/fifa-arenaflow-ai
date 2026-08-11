@@ -15,12 +15,12 @@ const VIEW_PERMISSIONS = {
   founder: [AUTH_ROLES.FOUNDER]
 };
 
-export function determineRole(username) {
-  const name = username.toLowerCase().trim();
-  if (name.includes('founder') || name.includes('admin')) {
+export function determineRole(email) {
+  const mail = email.toLowerCase().trim();
+  if (mail.includes('founder') || mail.includes('admin') || mail.endsWith('@arenaflow.ai') || mail.endsWith('@arenaflow.com')) {
     return AUTH_ROLES.FOUNDER;
   }
-  if (name.includes('ops') || name.includes('volunteer') || name.includes('steward')) {
+  if (mail.includes('ops') || mail.includes('volunteer') || mail.includes('steward') || mail.endsWith('@stadiumops.com') || mail.endsWith('@stadium.org')) {
     return AUTH_ROLES.OPS;
   }
   return AUTH_ROLES.FAN;

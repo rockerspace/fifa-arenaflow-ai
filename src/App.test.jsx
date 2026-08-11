@@ -43,8 +43,8 @@ describe('ArenaFlow AI Testing Suite', () => {
     // Login as ops coordinator first to satisfy IAM guard
     const loginLink = screen.getByRole('button', { name: /Sign In/i });
     fireEvent.click(loginLink);
-    const usernameInput = screen.getByLabelText(/Username \/ Role ID/i);
-    fireEvent.change(usernameInput, { target: { value: 'ops_steward' } });
+    const usernameInput = screen.getByLabelText(/Google Email Address/i);
+    fireEvent.change(usernameInput, { target: { value: 'steward@stadiumops.com' } });
     const loginSubmitBtn = screen.getByRole('button', { name: /^Login$/i });
     fireEvent.click(loginSubmitBtn);
 
@@ -89,8 +89,8 @@ describe('ArenaFlow AI Testing Suite', () => {
     // Login as ops coordinator first to satisfy IAM guard
     const loginLink = screen.getByRole('button', { name: /Sign In/i });
     fireEvent.click(loginLink);
-    const usernameInput = screen.getByLabelText(/Username \/ Role ID/i);
-    fireEvent.change(usernameInput, { target: { value: 'ops_steward' } });
+    const usernameInput = screen.getByLabelText(/Google Email Address/i);
+    fireEvent.change(usernameInput, { target: { value: 'steward@stadiumops.com' } });
     const loginSubmitBtn = screen.getByRole('button', { name: /^Login$/i });
     fireEvent.click(loginSubmitBtn);
 
@@ -112,8 +112,8 @@ describe('ArenaFlow AI Testing Suite', () => {
     // Login as ops coordinator first to satisfy IAM guard
     const loginLink = screen.getByRole('button', { name: /Sign In/i });
     fireEvent.click(loginLink);
-    const usernameInput = screen.getByLabelText(/Username \/ Role ID/i);
-    fireEvent.change(usernameInput, { target: { value: 'ops_steward' } });
+    const usernameInput = screen.getByLabelText(/Google Email Address/i);
+    fireEvent.change(usernameInput, { target: { value: 'steward@stadiumops.com' } });
     const loginSubmitBtn = screen.getByRole('button', { name: /^Login$/i });
     fireEvent.click(loginSubmitBtn);
 
@@ -152,8 +152,8 @@ describe('ArenaFlow AI Testing Suite', () => {
     // Login as founder first to satisfy IAM guard
     const loginLink = screen.getByRole('button', { name: /Sign In/i });
     fireEvent.click(loginLink);
-    const usernameInput = screen.getByLabelText(/Username \/ Role ID/i);
-    fireEvent.change(usernameInput, { target: { value: 'admin_founder' } });
+    const usernameInput = screen.getByLabelText(/Google Email Address/i);
+    fireEvent.change(usernameInput, { target: { value: 'narendra@arenaflow.ai' } });
     const loginSubmitBtn = screen.getByRole('button', { name: /^Login$/i });
     fireEvent.click(loginSubmitBtn);
 

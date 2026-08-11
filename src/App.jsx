@@ -173,21 +173,67 @@ export default function App() {
       {/* Auth Modal Overlay */}
       {isAuthOpen && (
         <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', background: 'rgba(0,0,0,0.8)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
-          <div className="glass-panel" style={{ padding: '2rem', width: '350px', background: '#0e1b35' }}>
-            <h3 style={{ marginBottom: '1rem', fontFamily: 'var(--font-heading)' }}>Secure Role Login</h3>
+          <div className="glass-panel" style={{ padding: '2rem', width: '380px', background: '#0e1b35' }}>
+            <h3 style={{ marginBottom: '0.5rem', fontFamily: 'var(--font-heading)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <Lock size={18} style={{ color: 'var(--gold)' }} />
+              Google Identity Login
+            </h3>
             <p style={{ fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '1.25rem' }}>
-              Select role by entering names containing:<br/>
-              • <strong>ops</strong> / <strong>volunteer</strong> for Operations<br/>
-              • <strong>admin</strong> / <strong>founder</strong> for SaaS Analytics
+              Sign in securely via Google Account Simulator.
             </p>
+
+            {/* Quick Sign In Chooser */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', marginBottom: '1.25rem' }}>
+              <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', fontWeight: 'bold' }}>QUICK SELECT ACCOUNT:</span>
+              <button 
+                type="button"
+                onClick={() => {
+                  setCurrentUser({ username: 'narendra@arenaflow.ai', role: AUTH_ROLES.FOUNDER });
+                  setIsAuthOpen(false);
+                  if (view === 'ops' || view === 'founder') setView(view);
+                }}
+                className="btn-secondary"
+                style={{ justifyContent: 'flex-start', padding: '0.5rem', fontSize: '0.75rem', width: '100%' }}
+              >
+                👤 narendra@arenaflow.ai (Founder Admin)
+              </button>
+              <button 
+                type="button"
+                onClick={() => {
+                  setCurrentUser({ username: 'coordinator@stadiumops.com', role: AUTH_ROLES.OPS });
+                  setIsAuthOpen(false);
+                  if (view === 'ops') setView(view);
+                  else if (view === 'founder') setView('home');
+                }}
+                className="btn-secondary"
+                style={{ justifyContent: 'flex-start', padding: '0.5rem', fontSize: '0.75rem', width: '100%' }}
+              >
+                👤 coordinator@stadiumops.com (Ops Steward)
+              </button>
+              <button 
+                type="button"
+                onClick={() => {
+                  setCurrentUser({ username: 'fan.guest@gmail.com', role: AUTH_ROLES.FAN });
+                  setIsAuthOpen(false);
+                  setView('home');
+                }}
+                className="btn-secondary"
+                style={{ justifyContent: 'flex-start', padding: '0.5rem', fontSize: '0.75rem', width: '100%' }}
+              >
+                👤 fan.guest@gmail.com (Public Fan)
+              </button>
+            </div>
+
+            <div style={{ textAlign: 'center', margin: '0.5rem 0', fontSize: '0.75rem', color: 'var(--text-muted)' }}>— OR ENTER EMAIL —</div>
+
             <form onSubmit={handleLoginSubmit}>
-              <div className="form-group" style={{ marginBottom: '1rem' }}>
-                <label htmlFor="auth-username-input" className="form-label">Username / Role ID</label>
+              <div className="form-group" style={{ marginBottom: '1.25rem' }}>
+                <label htmlFor="auth-email-input" className="form-label">Google Email Address</label>
                 <input 
-                  id="auth-username-input"
-                  type="text" 
+                  id="auth-email-input"
+                  type="email" 
                   className="form-input" 
-                  placeholder="e.g. ops_coordinator" 
+                  placeholder="name@stadiumops.com" 
                   value={authUsername}
                   onChange={(e) => setAuthUsername(e.target.value)}
                   style={{ width: '100%' }}
