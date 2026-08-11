@@ -121,4 +121,31 @@ describe('FIFA ArenaFlow AI Testing Suite', () => {
     expect(screen.getByText(/Recommended entrance:/i)).toBeInTheDocument();
     expect(screen.getByText(/Gate D/i)).toBeInTheDocument();
   });
+
+  test('Founder Hub: signs contracts and toggles traffic simulator modes', () => {
+    render(<App />);
+
+    const founderHubBtn = screen.getByRole('button', { name: /^Founder Hub$/i });
+    fireEvent.click(founderHubBtn);
+
+    // Verify Founder Hub header
+    expect(screen.getByText(/Founder SaaS Analytics/i)).toBeInTheDocument();
+
+    // Verify active subscribed stadiums is initially 6
+    expect(screen.getByText('6')).toBeInTheDocument();
+
+    // Click to book contract
+    const contractBtn = screen.getByRole('button', { name: /Book New Venue Contract/i });
+    fireEvent.click(contractBtn);
+
+    // Verify subscribed stadiums increments to 7
+    expect(screen.getByText('7')).toBeInTheDocument();
+
+    // Click DDoS traffic simulator mode
+    const ddosBtn = screen.getByRole('button', { name: /^DDoS Test$/i });
+    fireEvent.click(ddosBtn);
+
+    // Verify traffic mode state reflects in UI
+    expect(screen.getByText(/APIGEE ALERT:/i)).toBeInTheDocument();
+  });
 });

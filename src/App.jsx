@@ -2,7 +2,8 @@ import React, { useState, useCallback } from 'react';
 import Home from './pages/Home.jsx';
 import Dashboard from './pages/Dashboard.jsx';
 import FanPortal from './pages/FanPortal.jsx';
-import { Shield, Users, Globe2, Compass, AlertCircle } from 'lucide-react';
+import FounderHub from './pages/FounderHub.jsx';
+import { Shield, Users, Globe2, Compass, AlertCircle, Activity } from 'lucide-react';
 
 export default function App() {
   const [view, setView] = useState('home');
@@ -122,6 +123,13 @@ export default function App() {
             <Shield size={16} />
             Ops Dashboard
           </button>
+          <button 
+            className={`nav-button ${view === 'founder' ? 'active' : ''}`}
+            onClick={() => setView('founder')}
+          >
+            <Activity size={16} />
+            Founder Hub
+          </button>
         </nav>
       </header>
 
@@ -146,6 +154,8 @@ export default function App() {
             setMatches={setMatches}
           />
         )}
+        
+        {view === 'founder' && <FounderHub />}
       </main>
 
       {/* Footer */}
